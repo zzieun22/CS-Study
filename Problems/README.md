@@ -352,6 +352,16 @@ public class Freq {
 
 
 
+#### 해시테이블 
+
+탐색은 O(1) 이 걸린다. 단번에 찾을 수 있다.
+
+key value 가 쌍을 이룬다.
+
+좋은 해쉬 함수는 키의 일부분을 참조하여 해쉬 값을 만들지 않고 , 키 전체를 참조하여 해쉬 값을 만들어 낸다 
+
+
+
 ### 해쉬 맵 구현할때 충돌발생(해시 충돌)
 
 해시 함수를 사용해 해시값으로 특정 자료를 분류하는데 있어 -> 충돌에 대한 이슈가 있다.
@@ -380,6 +390,13 @@ Key - value 데이터를 안정적으로 저장하고 조회할 수 있도록 �
 
  첫 번째인 Open Addressing은 데이터 개수가 적다면 Separate chaining보다 더 성능이 좋다. 하지만 배열의 크기가 커질수록(M값) 연속된 공간에 데이터를 저장하여 캐시효율이 높다는 장점이 사라지게 되어 Separate chaining을 사용하는 것이 더 현명 해 보인다.
 
+**해시 테이블 충돌시 Open Addressing**
+
+- <u>선형조사법</u> : 옆자리 보고 비었나 확인하고 그자리에 대신 저장함 -> BUT **클러스터** (데이터가 특정영역에만 집중되는 현상) 가 발생할 수 있다.
+- <u>이차조사법</u> : N(2)(제곱) 칸 옆의 슬롯을 검사한다 조금 더 멀리서 빈 공간을 찾으려는 노력이 들어있음 
+
+
+
 또한 remove()호출 빈도에 따라 효율이 달라진다. 삭제 처리 시 효율이 높은 linked list방식인 Separate chaining이 open addressing보다 remove() 메소드 호출이 잦은 HashMap에서 더 좋은 효율을 보인다.
 
  
@@ -395,7 +412,17 @@ Key - value 데이터를 안정적으로 저장하고 조회할 수 있도록 �
 
 ### 해쉬 , 힙구현, 정렬  구현
 
+
+
+#### 힙 O(long(2)n
+
+
+
 힙소트는 선택정렬군중 하나로써, 비교기반 정렬 알고리즘이다. 선형시간탐색을 이용하는 기본적인 Selection Sort 보다 로그시간 복잡도를 가지는 우선순위 큐를 이용함으로써 성능면에서 낫다고 볼 수 있다. 퀵 소트보다는 느리지만, 최악의 경우에도 O(nlogn)의 성능을 보장한다는 점에서 퀵소트보다 낫다. but stable 하지는 않다
+
+힙은 이진트리이되 **완전이진트리**이다. 그리고 모든 노드에 저장된 값은 자식 노드에 저장된 값보다 크거나 같아야 한다. 즉 루트 노드에 저장된 값이 가장 커야 한다. 
+
+![img](https://i0.wp.com/upload.wikimedia.org/wikipedia/commons/6/69/Min-heap.png?w=1920) 
 
 ```
 #define MAX_ELEMENT 200 // 힙 안에 저장된 요소의 개수
@@ -415,6 +442,77 @@ HeapType heap1;
 ```
 
 힙을 이용해서 -> 우선순위 큐를 구현할 수 있다.
+
+우선순위 큐 성능 : 
+
+배열기반 저장 시간복잡도 : O(n)
+
+배열기반 시간 시간복잡도 : O(1)
+
+연결리스트 기반 저장 시간복잡도 : O(n)
+
+연결리스트 기반 시간 시간복잡도 : O(1)
+
+*힙기반 저장 시간복잡도 : O(long(2)n)*
+
+*힙기반 시간 시간복잡도 : O(long(2)n)*
+
+
+
+#### 이진 탐색 트리 : O( log(2)n)
+
+이진 탐색 트리의 조건 
+
+- 이진 탐색 트리의 노드에 저장된 키는 유일하다
+- 루트 노드의 키가 왼쪽 서브 트리를 구성하느 어떠한 노트의 키보다 크다
+- 루트 노드의 키가 오른쪽 서브트리를 구성하는 어떠한 노드의 키보다 작다
+- 왼쪽과 오른쪽 서브트리도 탐색트리이다.
+
+왼쪽 자식노드 키 < 부모노드 키 < 오른쪽 자식노트의 키
+
+Insert 함수 구현
+
+```
+void BSTInsert(BTree nodeef ** pRoot, BSTData data){
+    BTreeNode * pNode = Null; // parent
+    BTreeNode * cNode = *pRoot; // current
+    BTreeNode * nNode = Null; // newnode
+    
+    //새 노드가 추가될 위치를 찾는다
+    while(cNode != Null){
+        if (data == GetData(cNode))
+        	return; //중복 허용하지 않는다.
+        pNode = cNode;
+        if(GetData(cNode))> data)
+        	cNode = GetLeftSubTreee(cNode);
+        else 
+        	cNode = GetRightSubTree(cNode)
+    }
+    
+    //pnode 의 자식 노드로 추가할 새 노드 생성
+    nNode = MakeBTreeNode();// 새 노드 생성
+    SetData(nNode, data); // 새노드에 데이터 저장
+    
+    //pNoed의 자식 노드로 새 노드 추가
+    if(pNode != Null){
+        if(data < GetData(pNode))
+        	MakeLeftSubTree(pNode, nNode);
+       	else
+       		MakeRightSubTree(pNode, nNode);
+    }else{
+        *pRoot = nNode;
+    }
+    
+}
+```
+
+
+
+
+
+
+
+
 
 ## NoSQL기반
 
