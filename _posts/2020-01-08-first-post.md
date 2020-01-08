@@ -1,5 +1,5 @@
-title: "Welcome to Jekyll!"
-date: 2017-10-20 08:26:28 -0400
+title: "Geine Computer Study!"
+date: 2020-01-08
 categories: jekyll update
 ---
-hello hello
+안녕하세요 
