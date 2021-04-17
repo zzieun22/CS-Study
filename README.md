@@ -8,4 +8,4 @@
 
 블로그
 
-https://genie247.tistory.com/
+https://genie247.tistory.com/ 
