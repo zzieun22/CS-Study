@@ -881,14 +881,6 @@ https://aws.amazon.com/ko/docker/
 
 
 
-프로젝트 구성도(다른사람 회사에서 .. )
-
-![1619750464649](https://user-images.githubusercontent.com/36434665/116689654-513c8580-a9f3-11eb-9963-13c93453ac14.png)
-
-
-
-
-
 ## AWS 컨테이너 서비스 생성
 
 [Amazon ECS](https://ap-northeast-2.console.aws.amazon.com/ecs/home?region=ap-northeast-2#/firstRun)https://ap-northeast-2.console.aws.amazon.com/ecs/home?region=ap-northeast-2#/firstRun)
