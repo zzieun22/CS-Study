@@ -1103,8 +1103,6 @@ adb -s <device name> reverse tcp:8081 tcp:8081
 
 
 
-
-
 ## 바코드 스캔하기 
 
 ### react-native-camera-kit 라이브러리 설치
@@ -1211,79 +1209,94 @@ export * from "./BarcodeScanner"
 /src/screen/Home.js
 
 ```
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, { Component } from "react";
+import {Button, StyleSheet, View, Image, ImageBackground, Text, Alert, TouchableOpacity, PermissionsAndroid, Platform } from "react-native";
+import database from '@react-native-firebase/database';
 
-import React, { Component } from 'react';
-import { Button, Alert, View, SafeAreaView, PermissionsAndroid, Platform } from 'react-native';
-
-
-//default는 App.js에서만 사용해야 하는 듯 
-export class Home extends Component {
-    /**
- * 바코드 스캔
- */
-    scanBarcode = () => {
-
-        var that = this;
-        //To Start Scanning
-        if (Platform.OS === 'android') {
-            async function requestCameraPermission() {
-                try {
-                    const granted = await PermissionsAndroid.request(
-                        PermissionsAndroid.PERMISSIONS.CAMERA, {
-                        'title': '카메라 권한 요청',
-                        'message': '바코드를 스캔하기 위해 카메라 권한을 허용해주세요.'
-                    }
-                    )
-                    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                        //If CAMERA Permission is granted
-
-                        //TODO BarcodeScanner.js를 호출하세요 
-                        //this가 아니라 that을 사용해야 함 
-                        that.props.navigation.navigate('BarcodeScanner', { onGetBarcode: that.onGetBarcode })
-                    } else {
-                        alert("카메라 권한을 받지 못했습니다.");
-                    }
-                } catch (err) {
-                    alert("카메라 권한 오류: ", err);
-                    console.warn(err);
-                }
-            }
-            //Calling the camera permission function
-            requestCameraPermission();
-        } else {
-            that.props.navigation.navigate('BarcodeScanner', { onGetBarcode: that.onGetBarcode })
+export class Board extends Component { 
+  scanBarcode = () => {
+    var that = this;
+    //To Start Scanning
+    if (Platform.OS === 'android') {
+      async function requestCameraPermission() {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CAMERA,
+            {
+              title: 'Photo App Camera Permission',
+              message: 'Photo App needs access to your camera ',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            that.props.navigation.navigate('BarcodeScanner');
+          } else {
+            alert('카메라 권한을 받지 못했습니다.');
+          }
+        } catch (err) {
+          alert('카메라 권한 오류: ', err);
+          console.warn(err);
         }
+      }
+      requestCameraPermission();
     }
-
-    onGetBarcode = (barcodeValue) => {
-        console.log("barcode value: ", barcodeValue);
-        //아래 함수의 파라미터로 문자열만 넘길 수 있음. barcodeValue가 문자열처럼 보이지만 문자열이 아닌 듯. String()는 작동하지 않음. JSON.stringify()는 작동함 
-        Alert.alert("barcode value: ", barcodeValue);
-    };
-
-
-    render() {
-        return (
-            <View style={{ flex: 1 }}>
-                <SafeAreaView style={{ flex: 1, justifyContent: "center",  alignItems: "center"}}>
-                    <Button
-                        title="바코드 스캔"
-                        onPress={() => this.scanBarcode()}
-                        />
-                </SafeAreaView>
-            </View>
-        );
-
+  };
+  createBarcodeYes = () =>
+    Alert.alert('선택해주세요', '바코드가 있습니까?', [
+      {
+        text: '아니오',
+        onPress: () =>
+          this.props.navigation.navigate('CameraRoll', {barcodeValue: ''}),
+        style: 'cancel',
+      },
+      {text: '네', onPress: () => this.scanBarcode()},
+    ]);
+  weatherLevel = (num, limit) => {
+    if (num <= limit.good) { require('../assets/images/saessak-img-01.png')
+      return require('../assets/images/dust_good.png');
+    } else if (num <= limit.normal) {
+      return require('../assets/images/dust_normal.png');
+    } else if (num <= limit.bad) {
+      return require('../assets/images/dust_bad.png');
+    } else {
+      return require('../assets/images/dust_sobad.png');
     }
+  };
 
+render() {
+    return (
+    ....
+	     <TouchableOpacity
+             onPress={this.createBarcodeYes}
+             style={styles.button}>
+             <Text style={styles.startArea}>시작하기</Text>
+          </TouchableOpacity>
+      ....
+      );
+  }
 }
+
+ const styles = StyleSheet.create({
+   startArea: {
+      fontFamily: "calibri-bold",
+      fontSize: 20,
+      color: "rgba(255,255,255,1)",
+      textAlign: "center"
+    },
+    button: {
+      top: 290,
+      left: 170,
+      width: 160,
+      height: 50,
+      alignItems: "center",
+      backgroundColor: "#7cc594",
+      padding: 10,
+      position: "absolute",
+      borderRadius : 40
+    },
+  });
 ```
 
 /src/screen/BarcodeScanner.js
@@ -1332,7 +1345,7 @@ export class BarcodeScanner extends Component {
 
     isFirstGet = false
     this.props.route.params.onGetBarcode(barcodeValue);
-    //TODO 필요한 부분 구현하세요
+   
     this.props.navigation.navigate('Home')
     
     //called after te successful scanning of QRCode/Barcode
@@ -1392,6 +1405,16 @@ export class BarcodeScanner extends Component {
 
 
 
+metro 오류 
+
+**디버깅 버전 true 로 바꾸고 apk 디버깅 배포** 
+
+https://trend21c.tistory.com/2138
+
+react-native bundle --platform android --dev true --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
+
+
 ## 카메라 찍기 
 
 ### 설치
@@ -1400,11 +1423,7 @@ export class BarcodeScanner extends Component {
 npm install react-native-camera --save
 ```
 
-
-
-
-
-
+오류
 
 
 
@@ -1557,7 +1576,7 @@ service firebase.storage {
 import firebase from '@react-native-firebase/storage'
 ```
 
-나는 `import firebase from 'react-native-firebase` 이렇게 하면 오류남 .. ? 이유는 모름 
+**나는 `import firebase from 'react-native-firebase` 이렇게 하면 오류남 .. ? 이유는 모름** 
 
 그래서 따로 storage를 지정
 
@@ -1636,6 +1655,25 @@ export default data;
 
 
 
+### uuid 
+
+firebase에 저장하려면 고유한 key값이 필요하다. 
+
+uuid 생성 하기전 설치 
+
+```
+npm install uuid
+```
+
+```
+import uuid from 'react-native-uuid'
+//임포트 하기 
+```
+
+```
+uuid.v4() // 사용하기
+```
+
 
 
 ### imagePicker
@@ -1660,6 +1698,160 @@ import ImagePicker from 'react-native-image-picker';
 
 
 
+##  navigation 사용 
+
+2가지 단계가 있음 
+
+1.  navigation.navigate 메소드의 2번째 인자에 parameter 를 객체로 전달
+2.  전달받은 parameter를 읽을 때는, this.props.navigation.getParam(paramName, defaultValue) 메소드를 호출하여 읽는다. defaultValue를 지정해 놓으면, 전달받은 parameter 가 없을 때 defaultValue가 반환된다.
+
+
+
+### React Native : AsyncStorage
+
+### 설치 
+
+```
+npm i @react-native-community/async-storage
+```
+
+#### import 
+
+```
+import AsyncStorage from '@react-native-community/async-storage';
+```
+
+```
+AsyncStorage.setItem('token', 'save your token').then(() => {
+  setter({
+    key: 'value',
+  });
+  // do something more...
+});
+```
+
+```
+  AsyncStorage.getItem('token')
+    .then((value) => {
+      if (value) {
+        setter({
+          key: 'value',
+        });
+      }
+      // do something more...
+    })
+    .catch(() => {
+      setter(undefined);
+      // do something more...
+    });
+```
+
+```
+// 유저 닉네임 저장
+AsyncStorage.setItem('nickname','User1', () => {
+  console.log('유저 닉네임 저장 완료')
+});
+
+// 유저 닉네임 불러오기
+AsyncStorage.getItem('nickname', (err, result) => {
+  console.log(result); // User1 출력
+});
+```
+
+
+
+```
+// 유저정보 (nickname, phonenumber) 저장
+AsyncStorage.setItem('nickname',JSON.stringify({'nickname': 'User1', 'phonenumber','010-xxxx-xxxx'}), () => {
+  console.log('유저정보 저장 완료')
+});
+
+AsyncStorage.getItem('nickname', (err, result) => {
+  const UserInfo = Json.parse(result);
+  console.log('닉네임 : ' + UserInfo.nickname); // 출력 => 닉네임 : User1 
+  console.log('휴대폰 : ' + UserInfo.phonnumber); //  출력 => 휴대폰 : 010-xxxx-xxxx
+});
+
+```
+
+
+
+
+
+**오류******
+
+```ㅇ
+Each child in a list should have a unique "key" prop map
+```
+
+
+
+해결 전
+
+```
+    this.state.data.map(value => {
+            return(
+            <View style={styles.boardList}>
+            ....
+         )
+     }
+```
+
+해결 후
+
+```
+    this.state.data.map((value,index) => {
+            return(
+            <View style={styles.boardList} key={index}>
+            ....
+         )
+    }
+```
+
+
+
+
+
+## axios 
+
+공공데이터 활용 
+
+```
+npm install axios
+```
+
+```
+import axios from "axios";
+```
+
+예시
+
+```
+  getWeather = async(areaCode) => {
+      const { data } = await axios.get(
+      `http://openapi.seoul.go.kr:8088/${API_KEY}/xml/ListAirQualityByDis
+      trictService/1/5/${areaCode}/`
+      );
+      console.log(data);
+     
+    }
+    getWather = async (areaCode) => {
+      const { data } = await axios.get(
+        `http://openapi.seoul.go.kr:8088/${API_KEY}/xml/AreaQltwtrSttus/1/5/${areaCode}/`
+        );
+        console.log(data);
+    }
+```
+
+
+
+
+
+## xml 파싱 
+
+```
+npm add xml2js
+```
 
 
 
@@ -1667,12 +1859,142 @@ import ImagePicker from 'react-native-image-picker';
 
 
 
+```
+.then((response) => response.text()) .then((responseText) => { parseString(responseText, (err, result) => { 
+if (err !== null) { 
+console.log('Fail get data.'); 
+} else { 
+console.log(result); 
+}
+}); 
+}) 
+.catch((error) => { 
+console.log('Error fetching the feed: ', error); 
+});
+
+```
 
 
 
 
 
+```
+     parseString(data, function(err,result){
+          console.log(JSON.parse(JSON.stringify(result)));
+          this.setState({watherData : JSON.parse(JSON.stringify(result))});
+        });
+```
+
+이거에서 계속 오류남 
+
+[TypeError: this.setState is not a function. (In 'this.setState({
+                      weatherData: data
+                    })', 'this.setState' is undefined)]
+
+object 가 없다는둥... 
+
+https://stackoverflow.com/questions/31045716/react-this-setstate-is-not-a-function
+
+해결 
+
+```
+      parseString(data, (err,result) =>{
+          console.log(JSON.parse(JSON.stringify(result)));
+          this.setState({watherData : JSON.parse(JSON.stringify(result))});
+        });
+```
 
 
 
+
+
+## apk 추출
+
+1. test app으로 추출
+
+- 명령어 입력
+
+  ```
+  react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle
+  
+  
+  react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+  ```
+
+  
+
+- 안드로이드에서 apk로 말기 
+
+  ` android/app/build/outputs/apk/debug/app-debug.apk` 여기에 있음 
+
+
+
+2. Release 버전으로 추출 
+
+- signed 키 생성
+
+  ```
+  keytool -genkey -v -keystore <YOUR_KEYSTORE_NAME>.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+  
+  
+  
+  keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+  ```
+
+  
+
+- gradles.properties 에 넣기
+
+  ```
+  MYAPP_RELEASE_STORE_FILE=<YOUR_KEYSTORE_NAME>.keystore
+  MYAPP_RELEASE_KEY_ALIAS=my-key-alias
+  MYAPP_RELEASE_STORE_PASSWORD=<YOUR_PASSWORD>
+  MYAPP_RELEASE_KEY_PASSWORD=<YOUR_PASSWORD>
+  ```
+
+  
+
+- app/build.gradle에 다음 코드를 넣음
+
+  ```
+  android {
+      ...
+      defaultConfig { ... }
+      signingConfigs {
+          release {
+              if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                  storeFile file(MYAPP_RELEASE_STORE_FILE)
+                  storePassword MYAPP_RELEASE_STORE_PASSWORD
+                  keyAlias MYAPP_RELEASE_KEY_ALIAS
+                  keyPassword MYAPP_RELEASE_KEY_PASSWORD
+              }
+          }
+      }
+      buildTypes {
+          release {
+              ...
+              signingConfig signingConfigs.release
+          }
+      }
+  }
+  ...
+  ```
+
+  
+
+- 명령어로 개발자 모드 끄기 
+
+  ```
+  react-native bundle --platform android --dev false --entry-file index.js \
+    --bundle-output android/app/src/main/assets/index.android.bundle \
+    --assets-dest android/app/src/main/res/
+  ```
+
+- apk 빌드하기
+
+  ```
+  cd android && ./gradlew assembleRelease
+  ```
+
+  
 
