@@ -1845,6 +1845,42 @@ import axios from "axios";
 
 
 
+### fetch
+
+axios대신 사용하는 방법
+
+따로 라이브러리를 import 안해도됨 
+
+ **response timeout API**  제공안됨 
+
+지원안하는 브라우저 있음
+
+
+
+ex> 예시 소스 
+
+```
+  getWeather = async guCode => {
+    let url = `${API_URL}/${API_KEY_WEATHER}/xml/ListAirQualityByDistrictService/1/5/${guCode}/`;
+    await fetch(url)
+      .then(response => response.text())
+      .then(data => {
+        parseString(data, (err, result) => {
+          const data = JSON.parse(
+            JSON.stringify(result.ListAirQualityByDistrictService.row[0]),
+          );
+          this.setState({weatherData: data});
+          this.selectTab('대기정보');
+          console.log('대기 정보 --------------')
+          console.log(this.state.weatherData);
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+```
+
 
 
 ## xml 파싱 
