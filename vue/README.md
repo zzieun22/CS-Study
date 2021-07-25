@@ -10,9 +10,11 @@
 
 [API구현](API구현)
 
-[에러처리](에러처리)
-
 [PROMISE](PROMISE)
+
+[vuex](vuex)
+
+[에러처리](에러처리)
 
 
 
@@ -440,7 +442,65 @@ npm run serve
 
    ![image](https://user-images.githubusercontent.com/36434665/124347075-6a44fb00-dc1d-11eb-880a-88acf85aceb3.png)
 
-   
+
+
+
+```js
+
+{
+      path: '/user/:id', //*****
+      component: UserView,
+    } //라우터 설정  id 값을 넘어오게 한다. 
+```
+
+```html
+...
+<small>{{ news.time_ago }} by
+   <router-link v-bind:to="`/user/${news.user}`">{{ news.user }}</router-link> 
+</small>
+       ...
+```
+
+넘겨 줄 id 는 {news.user} 값
+
+링크를 눌렀을때 
+
+```
+http://localhost:8080/user/yewenjie
+```
+
+위 url으로 이동하면서 param.id 값이 yewenjie를 가지게 된다. 
+
+
+
+### 라우터 트랜지션 
+
+https://vuejs.org/v2/guide/transitions.html
+
+App.vue 에서 
+
+```html
+   <transition name = "fade"> 
+      <router-view></router-view>
+    </transition>
+```
+
+아래 style에 추가 
+
+```css
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+```
+
+tansition 태그에서 name 뒤에오는 fade가 css규칙에 prefix가 된다. 
+
+fade 를 다른 값으로 바꿔도 됨 
+
+
 
 ### 코드 스플리팅 (lazy loading)
 
@@ -542,7 +602,7 @@ export default {
 url 에 #이 없어진다.
 
 ```
-mode: 'history', // url 에 #이 없어진다. 'http://localhost:8080/#/'
+mode: 'history', // url 에 #이 없어진다. //'http://localhost:8080/#/'
 //실제 서버에 올릴때 url에 대한 우회, 필터링을 넣어줘야한다. 
 routes: [
     {
@@ -579,6 +639,31 @@ routes: [
 
 
 
+**헤더에 특정 라우트링크만 스타일 지정하고 싶을때**
+
+![image](https://user-images.githubusercontent.com/36434665/124871308-dc8f5400-dffe-11eb-8dd6-57d9b8f15d43.png)
+
+```
+.header .router-link-exact-active {
+  color: #35493e;
+}
+```
+
+
+
+**활성화된 링크 제외 나머지는 다 하얗게 처리** 
+
+```
+.header .router-link-exact-active {
+  color: #35493e;
+}
+.header a{
+  color:white
+}
+```
+
+
+
 
 
 ## 환경변수 
@@ -603,13 +688,43 @@ VUE_APP_
 
 
 
+### 컴포넌트 구성 
 
+**views**컴포넌트는 페이지의 라우팅 관련된 정보만 들어가는게 좋다. 
+
+> 데이터를 패치해오는 것들을 들어가는게 안좋다.
+
+데이터를 불러오는건 별도의 컴포넌트로 관리해야한다. 
+
+
+
+ 
 
 ## API구현
 
+axios 설치
+
+```
+ npm i axios --save
+```
+
+
+
+promise 기반으로 api를 제공한다.
+
+​	`new Promise()`라는 객체를 반환해주고 .then.catch를 쓸수있다.
+
+```
+    axios.get('https://api.hnpwa.com/v0/news/1.json')
+        .then(response => console.log(response))
+        .catch(error => console.log(error))
+```
+
+
+
 ### API공통화
 
-axios 를 공통으로 사용하기위해 create 하여 빼보기 
+**방법 1. axios 를 공통으로 사용하기위해 create 하여 빼보기** 
 
 ```vue
 const instance = axios.create({
@@ -634,11 +749,357 @@ function registerUser(userData){
 
 
 
+**방법2. api폴더 밑에 index.js 생성**
+
+api모듈 만들기 
+
+```javascript
+
+//1. HTTP Request & Response 관련된 기본 설정 
+const config = {
+	baseUrl: ....
+}
+
+//2. API 함수들을 정리
+function fetchinfoList(){
+	return axios.get(`${baseUrl} ... `);
+}
+
+//3. 꺼내주기 
+export {
+	fetchinfoList
+}
+```
+
+ 
+
+**tip !!** import ,export 
+
+```
+export {
+	abc,
+	해줘야 
+}
+
+import { abc } from xxx.js 가 가능하다.
+```
+
+이런식으로 export한 함수를  import해서 쓸수 있음 
+
+```javascript
+import { fetchinfoList } from '../api/index.js';
+
+export default {
+  created() {
+    fetchinfoList()
+      .then(response => console.log(response))
+      .catch(error => console.log(error));
+  }
+}
+```
+
+--------------------------
+
+`created` `beforeMount` 
+
+데이터 요청할때 위 2개를 많이 쓴다. 
+
+
+
+### this
+
+```javascript
+var a = 10;
+window.a // 10
+this // window 
+
+```
+
+```javascript
+function sum(a, b){
+	console.log(this); // window 
+	return a + b;
+}
+```
+
+```javascript
+function Vue(el) {
+	console.log(this); // 'Vue{}' 인스턴스를 정의한 객체 자체 (생성자)
+	this.el = el
+}
+
+new Vue('#app');
+
+```
+
+```javascript
+  console.log(this); // VueComponent{..}
+    fetchNews()
+      .then(function(response) {
+         console.log(this); //undefined
+        // 비동기 호출로 인해서 새로운 this가 생김 
+      })
+      .catch(error => console.log(error));
+ ////////////////////////////////////////////////vs
+ console.log(this); //VueComponent{..}
+    fetchNews()
+      .then(response => {
+         console.log(this); //VueComponent{..}
+        // es6를 사용하면 호출되는 this를 갖고온다.
+      })
+      .catch(error => console.log(error));
+  }
+```
+
+
+
+## PROMISE
+
+자바스크립트 비동기 처리에 사용되는 객체 
+
+
+
+보통 서버에서 받아온 데이터를 화면에 표시할 때 사용 
+
+```javascript
+function getData(callback){
+	return new Promise(function(resolve,reject)){
+   axios.post('~~', param)
+       .catch(function (err) {
+
+        }).then(function (rs) {
+            resolve(response);
+        });
+	}
+}
+
+getData().then(function(data){
+	console.log(data);
+});
+```
+
+
+
+### 프로미스 상태(states)
+
+- Pending(대기) : 비동기 로직이 완료 x
+
+  - `new Promise();` 메서드 호출 할 때 
+
+- Fulfilled(이행) : 비동기 처리 완료되어 프로미스가 결과값 반환 
+
+  ```javascript
+  return new Promise(function(resolve,reject)){
+  	resolve(); // 실행하면 이행 상태가 된다.
+  });
+  ```
+
+- Rejected(실패) : 비동기 처리가 실패하거나 오류가 발생한 상태
+
+  ```javascript
+  return new Promise(function(resolve,reject)){
+  	......
+  	reject(new Error("Request is failed"));
+  });
+  ```
+
+
+
+### Promise chaining
+
+`then()`으로 여러개 프로미스 사용할 수 있음 
+
+```javascript
+..()
+.then(function(data){
+
+})
+.then(function(){
+
+});
+....
+
+```
+
+
+
+```javascript
+//childComponents.vue
+<template>
+<div class="text" :class="{marquee:showTxt}">
+    <div> {{this.firLine}} <br> 이렇게 말해보세요! </div>
+    <span>
+     	<div>“{{this.callName}},<br>&nbsp; {{this.secLine}}” </div>
+    </span>
+</div>
+</template>
+```
+
+
+
+## store
+
+**설치** 
+
+```
+npm i vuex
+```
+
+vuex 는 **상태관리 도구**이다. 
+
+여러 컴포넌트간에 공유되는 데이터 속성 
+
+
+
+<u>store/index.js</u>
+
+vuex는 플러그인 형태로 제공 
+
+```javascript
+Vue.use(Vuex); // 로 vuex사용 
+```
+
+```javascript
+export const store = new Vuex.store({
+ // 인스턴스를 내보낸다.
+})
+```
+
+<u>main.js</u> 에 등록해줌 
+
+```js
+import store from './store/index.js';
+```
+
+```js
+new Vue({
+  router,
+  store, // store 등록 // 원래 store: store 이지만 앞뒤가 같으니 생략가능 
+  render: h => h(App)
+}).$mount('#app')
+
+```
+
+
+
+**store 에 api 저장후에 view에서 불러오기** 
+
+```js
+state:{
+    news: []
+},
+mutations: {
+    SET_NEWS(state, news) {
+       state.news = news;
+    }
+},
+actions : {
+    FETCH_NEWS() {
+      fetchNews()
+      .then(response => {
+          console.log(response);
+          context.commit('SET_NEWS', response.data); // api를 이용해서 mutation에 데이터를 넘길 수 있다. 
+          state.news = response.data 
+      })
+      .catch(error => {
+          console.log(error);
+      });
+    }
+  },
+```
+
+1. vuex 에 action 호출하려면 dispatch api를 이용해서 데이터를 호출해야한다.
+
+2. `context.commit`  api를 이용해서 mutation에 데이터를 넘길 수 있다. 
+
+   >  ` context.commit('SET_NEWS', response.data);` SET_NEWS에 response.data를 넘겨주겠다.
+
+   ![vuex](https://vuex.vuejs.org/vuex.png)
+
+​	Actions 에서 commit을 해서 Mutations에 넘길 수 있다. 
+
+3.   Mutations에서 state에 값을 받아와서 데이터를 넘겨줌 
+
+   ```js
+   SET_NEWS(state, news) {
+          state.news = news;
+   }
+   ```
+
+4. store를 사용하는 .vue 
+
+   ```js
+   this.$store.dispatch('FETCH_NEWS')
+   ```
+
+   로 불러와서 
+
+   ```
+   <div v-for="item in news">{{ this.$store.state.news }}</div>
+   ```
+
+   로 받아서 쓴다. 
+
+   ​						 vuex
+
+   View		   	 actions     <<<<<    API
+
+   View    			mutations				API
+
+   View	   <<<< state                        API
+
+이런느낌?
+
+
+
+### mapstate 
+
+모듈화 , 간단하게 바인딩하는것 
+
+```js
+import { mapState } from 'vuex';
+...mapState({
+	ask: state => state.ask
+})
+```
+
+### getters
+
+더 간단하게!
+
+computed와 동일한 속성 (store에서 사용 가능하다.)
+
+store/index.js
+
+```js
+getters: {
+	fetchedAsk(state){
+        return state.ask
+    }
+},
+```
+
+
+
+```js
+import { mapgetters } from 'vuex';
+....
+computed: {
+    ...mapGetters({
+        fetchedAsk : 'fetchedAsk',
+    })
+    
+    ...mapGetters([]
+        'fetchedAsk',
+    ]) // 배열로도 가능 
+}
+```
+
 
 
 ## 에러처리
 
-```vue
+```javascript
 async submitForm(){
 	try{
 	//비즈니스 로직
@@ -668,7 +1129,7 @@ async submitForm(){
 
 
 
-2021-06-28
+2021-06-28 tippppppp**********
 
 `v-bind` 속성은 뷰 인스턴스의 데이터 속성을 해당 HTML 요소에 연결할 때 사용 
 
@@ -680,87 +1141,232 @@ async submitForm(){
 
 
 
-## PROMISE
-
-자바스크립트 비동기 처리에 사용되는 객체 
 
 
+### template 사용
 
-보통 서버에서 받아온 데이터를 화면에 표시할 때 사용 
-
-```
-function getData(callback){
-	return new Promise(function(resolve,reject)){
-   axios.post('~~', param)
-       .catch(function (err) {
-
-        }).then(function (rs) {
-            resolve(response);
-        });
-	}
-}
-
-getData().then(function(data){
-	console.log(data);
-});
-```
-
-
-
-### 프로미스 상태(states)
-
-- Pending(대기) : 비동기 로직이 완료 x
-
-  - `new Promise();` 메서드 호출 할 때 
-
-- Fulfilled(이행) : 비동기 처리 완료되어 프로미스가 결과값 반환 
-
-  ```
-  return new Promise(function(resolve,reject)){
-  	resolve(); // 실행하면 이행 상태가 된다.
-  });
-  ```
-
-- Rejected(실패) : 비동기 처리가 실패하거나 오류가 발생한 상태
-
-  ```
-  return new Promise(function(resolve,reject)){
-  	......
-  	reject(new Error("Request is failed"));
-  });
-  ```
-
-
-
-### Promise chaining
-
-`then()`으로 여러개 프로미스 사용할 수 있음 
-
-```
-..()
-.then(function(data){
-
-})
-.then(function(){
-
-});
-....
-
-```
-
-
-
-```
-//childComponents.vue
-<template>
-<div class="text" :class="{marquee:showTxt}">
-    <div> {{this.firLine}} <br> 이렇게 말해보세요! </div>
-    <span>
-     	<div>“{{this.callName}},<br>&nbsp; {{this.secLine}}” </div>
-    </span>
-</div>
+``` html
+<template v-if="news.domain">
+	....
+</template>
+<template v-else>
+	....
 </template>
 ```
+
+
+
+
+
+tips 
+
+#### default
+
+``` js
+export cont bus new Vue()
+import { bus } from './bus.js'
+//bus만 export/import 가능 
+
+export default new Vue();
+import Bus from './bus.js'
+//전체다 가능 
+```
+
+
+
+## Event bus
+
+빈 이벤트 이벤트 객체를 만들어서 이벤트 객체 통해서 컴포넌트간의 데이터를 전달하는 것 
+
+
+
+`bus.js` 
+
+```js
+import Vue from 'vue';
+
+export default new Vue();
+//빈 이벤트 객체 
+```
+
+`특정 vue`
+
+```js
+import bus from './utils/bus.js';
+....
+
+created(){
+	bus.$emit('start:spinner');
+}
+```
+
+`App.vue`
+
+```vue
+import bus from './utils/bus.js';
+....
+<spinner :loading = "lodingStatus"></spinner>
+
+...
+    data(){
+        return {
+            lodingStatus: false,
+        };
+    },
+    methods: {
+        startSpinner(){
+            this.loadingStatus = true;
+        },
+        endSpinner(){
+             this.loadingStatus = false;
+        }
+    }
+    created(){
+        bus.$on('start:spinner', this.startSpinner);
+    },
+	beforeDestroy(){
+         bus.$off('start:spinner', this.startSpinner);
+         bus.$off('start:spinner', this.endSpinner);
+	}
+```
+
+!! 이벤트 버스는 객체가 계속 쌓이기 때문에 `off`를 해주어야 한다.
+
+
+
+## 하이오더 컴포넌트
+
+
+
+```js
+    import createListView from '../views/CreateListView';
+    ...
+    {
+      path: '/jobs',
+      name: 'jobs',
+      component: createListView('JobsView'),
+    },
+    {
+      path: '/item/:id',
+      component: ItemView,
+    },
+    ...
+```
+
+` component: createListView('JobsView'),`
+
+view 한단계 위에 `createListView`인 하이오더리스트뷰가 생긴다. 
+
+`createListView.js`
+
+```js
+import ListView from './ListView.vue';
+
+export default function createListView(name) {
+  return {
+    name,
+    render(h) {
+      return h(ListView);
+    },
+  };
+}
+```
+
+<u>**단점**</u>: 컴포넌트 레벨이 깊어진다. 
+
+
+
+## 믹스인
+
+ <u>재활용 로직</u> 
+
+상태값을 데이터와 메서드로 가져왔을때 mixin으로 빼게 되면 .vue에서 믹스인으로 해당내용을 주입해서 재사용 할 수 있다. 
+
+
+
+`mixins/ListMixin.js`
+
+```js
+export default {
+  //재사용할 컴포넌트 옵션 & 로직
+    created(){
+        //....공통 로직
+    }
+}
+```
+
+`NewsView.vue`
+
+```js
+import ListMinIn from '../mixins/ListMixin.js'
+export default {
+  . .... 
+ 
+  mixins : [ListMixIn],
+}
+```
+
+
+
+## 데이터 호출시점 
+
+#### 라우터 네비게이션 가드 
+
+라우터로 특정 url을 접근했을때 접근하기 전에 동작들을 정의하는 로직 (특정 url로 접근하기위한 동작을 정의 하는 속성)
+
+특정 라우터에 진입하기 전에 funcation callback안에 정의하면 next호출했을때 다음동작이 실행된다. 
+
+
+
+#### 컴포넌트 라이프 사이클 훅 
+
+`created`
+
+컴포넌트가 생성되자마자 호출되는 로직 
+
+
+
+아직다 안들었음... 
+
+
+
+## 단위테스트
+
+테스트 코드는 일일이 기능을 손으로 확인하는 시작을 줄여준다.
+
+### Jest
+
+
+
+`LoginForm.spec.js` 만들기
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

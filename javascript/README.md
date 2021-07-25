@@ -2,6 +2,218 @@
 
 
 
+평가 시점이 순수함수가 아닌 함수가 중요하다.
+
+순수함수는 언제 실행해도 상관없어서(동일한 결과를 리턴) 평가 시점이 상관이 없음 
+
+> 평가시점을 다루는것을 통해 다양한 로직을 다룬다. 
+
+### 일급함수 
+
+함수를 **값으로 다룰 수 있다.** 
+
+함수를 변수에 담을수도있고, 값으로 다룰수도있고, .. 인자로 넘길수도있다. 
+
+1. 변수를 함수에 담을 수 있다. 
+
+   ```javascript
+   var f1 = function(a) {return a * a};
+   console.log(f1) // 함수로 나옴 
+   ```
+
+   
+
+2. 함수가 함수를 인자로 담을 수 있다. 
+
+   ```javascript
+   return f3(f){
+   	return f(); // 10 /어떤 함수를 인자로 넘기느냐에 따라 다름
+   }
+   f3(function() { return 10;})
+   ```
+
+   언제 평가해도 상관없는 순수함수를 만드는것이 함수형 프로그래밍 
+
+
+
+```
+function add_maker(g){
+	return function(b){ // 클로저
+		return a+b;
+	}
+}
+
+var add10 = add_maker(10);
+// >>> var add10 = return function(b){
+//			return 10 + b;
+//		} // 요런 느낌임 
+console.log(add10(20));
+
+```
+
+
+
+#### 예시
+
+**일급함수 + 클로저**
+
+```
+function add_maker(a){
+	return function(b){ // 클로저
+		return a+b;
+	}
+}
+```
+
+![asd](https://user-images.githubusercontent.com/36434665/126025958-b7b3a7c5-997b-408a-a098-02b3bdcaddb9.png)
+
+이렇게 a를 참조한다. 
+
+```
+function(b){ // 클로저
+	return a+b;
+}
+```
+
+얘가 
+
+```
+function add_maker(a){
+	
+}
+```
+
+여기서 받은 a를 참조하여 기억하고 있음 
+
+
+
+**순수함수**이기도하다.
+
+```
+function(b){ // 클로저
+		return a+b;
+	}
+```
+
+a는 변수이지만 참조만 할 뿐 변경을하고있지않는다.
+
+어떤 시점에 평가를해도 동일한 값을 가지고 있음 
+
+
+
+#### 함수 예제
+
+```
+funcation f4(f1,f2,f3){
+ 	return f3(f1() + f2());
+ 	//         2       1
+ 	//     3*3
+}
+
+f4(
+	function() {return 2;},
+	function() {return 1;},
+	function(a) { return a * a}
+)
+```
+
+
+
+## 커링
+
+함수에 인자를 적용해나가다가 필요한 인자가 채워지면 함수가실행되는기법 
+
+커링 지원되지 않지만 구현하기 
+
+
+
+```javascript
+function _curry(fn){
+	return function(a){
+        if(arguments.length == 2) return fn(a, b);
+		return function(b){
+			return fn(a,b);
+		}
+	}
+}
+```
+
+```javascript
+var add = _curry(function (a,b) { // (1)
+	return a + b;
+});
+
+var add10 = add(10); //(2) 
+console.log( add10(5) );
+```
+
+
+
+```javascript
+//(1)
+var add = return function(a){
+		return function(b){
+			return fn(a,b);
+		}
+	}
+
+//(2)
+var add10 = return function(b){
+			return fn(a,b);
+		}
+```
+
+
+
+
+
+
+
+## 고차함수
+
+함수를 인자를 받아서 실행 
+
+함수를 만들어서 리턴하는 함수 
+
+2가지 유형의 고차함수가 있다.
+
+
+
+**함수를 인자를 받아서 실행 **
+
+```
+  const apply1 = f => f(1); //함수 인자값으로 받아서 실행 
+  const add2 = a => a + 2;
+  log(apply1(add2));// 3  >>>> a => a + 2;함수를 받아서 안에서 실행 시켜줌
+  log(apply1(a => a - 1));
+
+  const times = (f, n) => {
+    let i = -1;
+    while (++i < n) f(i);
+  };
+
+  times(log, 3);
+
+  times(a => log(a + 10), 3);
+```
+
+
+
+**함수를 만들어서 리턴하는 함수** 
+
+클로저를 만들어 리턴
+
+```
+  const addMaker = a => b => a + b; // a를 계속해서 기억하고 있다. 
+  const add10 = addMaker(10);
+  log(add10(5));
+  log(add10(10));
+```
+
+
+
+
+
 ## 리스트 순회
 
 **기존** 
@@ -318,6 +530,10 @@ map 함수는 이터러블 프로토콜을 따르고 있음
 
 값을 축약하는 함수 
 
+array 를 모든 데이터를 축약해서 원하는 새로운 값(함수에 따른 새로운 값) 을 만든다. 
+
+
+
 **Reduce  로직**
 
 ```javascript
@@ -382,6 +598,49 @@ reduce(
 
 
 
+## go
+
+즉시 실행 함수
+
+```javascript
+go(
+	0,
+	a => a + 1, // 1
+	a => a + 10, // 11
+	a => a + 100, // 111
+	log);
+	
+```
+
+인자들을 통해 하나의 값으로 축약을 해나간다.
+
+인자를 다음함수에 전달 > 그 결과 인자를 또 그 다음함수에 전달 
+
+연속적으로 하나의 일을 해야한다. 
+
+```javascript
+cont go = (...list) => {
+	console.log(list);
+}
+// >>> [0,f,f,f,f]
+```
+
+`...list` 이렇게 하면 리스트로 받을 수 있음 
+
+
+
+## pipe
+
+파이프는 함수를 리턴하는 함수
+
+연속 실행하게 된 함수를 리턴 
+
+```javascript
+var f1 = _pipe(
+	function(a) { return a + 1; }
+	function(a) { return a * 2; });
+)
+```
 
 
 
@@ -389,14 +648,7 @@ reduce(
 
 
 
-
-
-
-
-
-
-
-
+## 클로저 
 
 
 
