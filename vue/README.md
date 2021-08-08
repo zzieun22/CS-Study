@@ -16,7 +16,15 @@
 
 [에러처리](에러처리)
 
+[Eventbus](Eventbus)
 
+[하이오더컴포넌트](하이오더컴포넌트)
+
+[믹스인](믹스인)
+
+[외부라이브러리모듈화 ](외부라이브러리모듈화 )
+
+[단위테스트](단위테스트)
 
 ## nvm사용
 
@@ -937,7 +945,34 @@ getData().then(function(data){
 
 
 
-## store
+### async 
+
+promise 의 .then .catch 와다르게 네트워크 비동기 요청에서만 처리 
+
+일반 try catch 자바스크립트 코드 까지 예외처리 가능 (async 안에 사용 )
+
+```js
+import { handleException } from './utils/handler.js'
+//....
+try{
+// ... 
+}catch(error) {
+	handleException(error);
+	
+}
+```
+
+`/utils/handler.js` 
+
+```js
+function handleExceptions(status){
+ //..
+}
+```
+
+로 공통으로 처리 가능 
+
+## vuex
 
 **설치** 
 
@@ -1174,7 +1209,7 @@ import Bus from './bus.js'
 
 
 
-## Event bus
+## Eventbus
 
 빈 이벤트 이벤트 객체를 만들어서 이벤트 객체 통해서 컴포넌트간의 데이터를 전달하는 것 
 
@@ -1234,7 +1269,7 @@ import bus from './utils/bus.js';
 
 
 
-## 하이오더 컴포넌트
+## 하이오더컴포넌트
 
 
 
@@ -1324,9 +1359,281 @@ export default {
 
 컴포넌트가 생성되자마자 호출되는 로직 
 
+**문제점**
+
+서버가 느릴때 list를 공유하고 있다면 ? 이전 데이터가 보일 수 있다. 
+
+화면상에서 
 
 
-아직다 안들었음... 
+
+
+
+## 외부라이브러리모듈화 
+
+vue.js 관려 라이브러리가 없을때 일반 라이브러리를 결합할 수 있어야한다. 
+
+차트/ 데이트 피커 /테이블라이브러리 / 스피너 등등 
+
+
+
+### chart.js
+
+**설치**
+
+https://www.chartjs.org/docs/latest/
+
+```
+npm install chart.js@2.7.0
+```
+
+**import 로 App.vue에서 로딩** 
+
+https://www.chartjs.org/docs/latest/getting-started/usage.html
+
+여기에 있는 거 추가 
+
+App.vue
+
+<u>mount() 라이프 사이클 훅에서 차트를 그려야한다.</u>
+
+```js
+<template>
+  <div>
+    <h1>Chart.js</h1>
+    <canvas id ="myChart" width="400" height= "400"></canvas>
+  </div>
+</template>
+
+<script>
+import Chart from 'chart.js'
+
+export default {
+  //컴포넌트 속성 , 인스턴스 옵션 
+  
+  mounted(){
+    var ctx = document.getElementById('myChart');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    console.log(myChart);
+  }
+}
+</script>
+
+<style>
+
+</style>
+
+```
+
+
+
+**차트를 컴포넌트화**
+
+![image](https://user-images.githubusercontent.com/36434665/127730462-d562995d-e088-49da-8d48-efd56279ffa4.png)
+
+`BarChart.vue` 생성 해서 chart 로직 갖다 넣고 
+
+`App.vue` 에 컴포넌트 등록해주기 
+
+```
+<template>
+  <div>
+    <h1>Chart.js</h1>
+    <bar-chart></bar-chart>
+  </div>
+</template>
+
+<script>
+import BarChart from './components/BarChart.vue'
+
+export default {
+  components: { BarChart },
+  //컴포넌트 속성 , 인스턴스 옵션 
+ component :{
+   BarChart,
+ },
+}
+</script>
+
+<style>
+
+</style>
+
+```
+
+
+
+!tip 다른 컴포넌트에서 같은 id 값을(getElementById) 쓰면 마지막에 렌더링 된 애를 바라보게 된다. 
+
+**vue 레퍼런스 속성**
+
+```vue
+<div id ="app">hello</div>
+//..
+document.getElementById('app');
+document.querySelector('app');
+$('#app');
+```
+
+를 대신해서 vue에서는 어떻게 쓰냐 ? 
+
+```vue
+<div ref ="app" id ="app">hello</div>
+//..
+this.$refs.app; 
+```
+
+레퍼런스로 사용  > 컴포넌트에서만 접근 가능하기 떄문에 같은 ref 값을 사용해도 상관 없다. 
+
+
+
+**차트 플러그인**
+
+ https://vuejs.org/v2/guide/plugins.html#ad
+
+에 플러그인 관련된 내용 있음 
+
+`plugins/ChartPlugin.js` 생성 
+
+인스턴스가 생성되었을때 모든 컴포넌트에서 사용하고 싶은 기능을 정의하는 것 
+
+```js
+export default {
+    install(Vue){j
+        console.log('chart plugin loaded');
+        
+    }
+}
+```
+
+
+
+`main.js` 에서 등록 
+
+```js
+import Vue from 'vue'
+import App from './App.vue'
+import ChartPlugin from './plugins/ChartPlugin.js'  //!
+Vue.config.productionTip = false
+
+Vue.use(ChartPlugin); //!
+//ChartPlugin.js 의 install 이 실행된다. 
+
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
+
+```
+
+`ChartPlugin.js `
+
+```js
+import Chart from 'chart.js' 
+export default {
+    install(Vue){
+        console.log('chart plugin loaded');
+        Vue.prototype.$_Chart = Chart;
+		//차트를 플러그인에서 로딩해서 다른곳에서 쓸수 있게 함 
+        
+   
+    }
+}
+```
+
+` this.$_Chart` 다른 곳에서 이렇게 불러와서 쓸 수 있다. 
+
+`$_` vue.js에서 권고하는 플러그인 prefix
+
+
+
+`BarChart.vue`
+
+`import` 제거 , `new Chart` 를 `this.$_Chart` 로 수정 
+
+```vue
+<template>
+    <canvas ref ="barChart" id ="barChart" width="400" height= "400"></canvas>
+</template>
+<script>
+
+export default {     
+  mounted(){
+    var ctx = this.$refs.barChart;
+    var myChart = new this.$_Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    console.log(myChart);
+  }
+}
+</script>
+<style>
+
+</style>
+```
 
 
 
@@ -1336,37 +1643,180 @@ export default {
 
 ### Jest
 
-
-
 `LoginForm.spec.js` 만들기
 
+```js
+import { sum } form './math'
+describe('math.js', () => {
+	test('10 + 20 + 30', () => {
+		const result = sum(10,20);
+        expect(result).toBe(30);
+        //expect(result).not.toBe(30);
+	});
+});
+```
+
+`describe()` : 연관된 테스트 케이스를 그룹화하는 API
+
+`test()` : 하나의 테스트 케이스를 검증하는 API
+
+` expect()` 결과값 기대되는 값 ? 
+
+**실행해보기** 
+
+```
+npm t
+```
 
 
 
+ESlint 에서 적용하기 
+
+.eslintrc.js 에서 
+
+```js
+//..
+env :{
+ node : true
+ jest : true //추가해주기
+}
+//..
+```
 
 
 
+### 뷰 컴포넌트 테스트 
+
+```js
+import { LoginForm } form './LoginForm.vue'
+import Vue from 'vue';
+
+describe('LoginForm.vue', () => {
+	test('컴포넌트가 마운팅 되면 username이 존재하고 초기 값으로 설정 되어 있어야 한다. ', () => {
+		const instance = new Vue(LoginForm).$mount(); 
+       	console.log(instance.username); // test하면 잘 보임 
+        expect(instance.username).toBe('');
+	});
+});
+```
+
+인스턴스가 생성될때 엘리먼트 지정  vs 인스턴스가 생성되고 나서 엘리먼트 지정 
+
+(el )                                                                (mount)
 
 
 
+### 뷰 테스트 유틸 라이브러리 
+
+https://vue-test-utils.vuejs.org/guides/
+
+**라이브러리 가져오기** 
+
+#### shallowMount
+
+```js
+import { shallowMount } from '@vue/test-utils' // 플러그인 
+import { LoginForm } form './LoginForm.vue'
+
+describe('LoginForm.vue', () => {
+	test('컴포넌트가 마운팅 되면 username이 존재하고 초기 값으로 설정 되어 있어야 한다. ', () => {
+		const wrapper = shallowMount(LoginForm);
+        expect(wrapper.vm.username).toBe('');
+	});
+});
+```
+
+ `shallowMount` 특정 컴포넌트를 마운트 할수있음 
+
+`wrapper.vm` instance랑 동일 
 
 
 
+#### find
+
+wrapper의 `find()` 태그 특정 html요소를 쫓아갈수있다. 
+
+css 선택자로도 가능 
+
+```js
+import { shallowMount } from '@vue/test-utils' // 플러그인 
+import { LoginForm } form './LoginForm.vue'
+
+describe('LoginForm.vue', () => {
+	test('ID는 이메일 형식이여야한다.', () => {
+		const wrapper = shallowMount(LoginForm, {
+            data(){
+                return {
+                    username: 'test@abc.com',
+                }
+            }
+        });
+        const idInput = wrapper.find('#username');
+ 		console.log(idInput.element.value); // html태그의 value값을 확인할 수 있다. 
+        console.log(wrapper.vm.isUsernameValid); //true
+        
+	});
+});
+```
+
+ 내가 저 username 의 값을 저장된 test@abc.com을 넣으면? `console.log(wrapper.vm.isUsernameValid)` 값은 true 가 된다. 
+
+> compute 기능 
+>
 
 
 
+### 사용자 관점의 테스트 코드 
+
+틀렸을때 동작하는 방법 
+
+```js
+import { shallowMount } from '@vue/test-utils' // 플러그인 
+import { LoginForm } form './LoginForm.vue'
+
+describe('LoginForm.vue', () => {
+	test('ID가 이메일 형식이 아니면 경고 메세지가 출력된다.', () => {
+		const wrapper = shallowMount(LoginForm, {
+            data(){
+                return {
+                    username: 'test',
+                }
+            }
+        });
+       const wraningText = wrapper.find('.warning') 
+       console.log(warningText.html()); // .warning 해당하는 html 이나옴 
+        expect(wraningText.exits()).toBeTruthy();
+	});
+});
+```
+
+이벤트에 의해서 어떻게 처리해야하는지에 대한 검증하는 코드가 들어가야 한다. 
 
 
 
+```js
+test('ID와 PW가 입력되지 않으면 로그인 버튼이 비활성화 된다.', () => {
+		const wrapper = shallowMount(LoginForm, {
+            data(){
+                return {
+                    username: '',
+                    password: '',
+                }
+            }
+        });
+        const button = wrapper.find('button');
+        expect(button.element.disabled).toBeTruthy();
+	});
+});
+```
+
+테스트 코드가 잘 작성되었는지 확인하려면 반대값을 넣어보면 된다. 
 
 
 
+-----------------------------------
 
-
-
-
-
-
+vue.js 끝장내기 
 
 
 
